@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const express = require("express");
 const Messages = require("./dbMessages");
 const Pusher = require("pusher");
+const cors = require("cors");
 
 const app = express();
 const port = process.env.PORT || 9000;
@@ -16,8 +17,11 @@ db.once("open", () => {
     if (change.operationType === "insert") {
       const messageDetails = change.fullDocument;
       pusher.trigger("messages", "inserted", {
+        _id: messageDetails._id,
         name: messageDetails.name,
         message: messageDetails.message,
+        timestamp: messageDetails.timestamp,
+        recieved: messageDetails.recieved,
       });
     } else {
       console.log("Error with trigger the pusher...");
@@ -34,6 +38,7 @@ const pusher = new Pusher({
 });
 
 app.use(express.json());
+app.use(cors());
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "*");
@@ -68,6 +73,10 @@ app.post("/messages/new", (req, res) => {
       res.status(201).send(data);
     }
   });
+});
+
+app.delete("/:id", (req, res) => {
+  Messages.findByIdAndDelete(req.params.id).then((data) => res.json(data));
 });
 
 app.listen(port, () => console.log(`Running on port:${port}`));
