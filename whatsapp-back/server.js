@@ -7,6 +7,7 @@ const app = express();
 const port = process.env.PORT || 9000;
 
 const db = mongoose.connection;
+
 db.once("open", () => {
   const msgCollection = db.collection("messagecontents");
   const changeStream = msgCollection.watch();
@@ -17,8 +18,9 @@ db.once("open", () => {
       pusher.trigger("messages", "inserted", {
         name: messageDetails.name,
         message: messageDetails.message,
-        timestamp: messageDetails.timestamp,
       });
+    } else {
+      console.log("Error with trigger the pusher...");
     }
   });
 });
@@ -32,6 +34,11 @@ const pusher = new Pusher({
 });
 
 app.use(express.json());
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "*");
+  next();
+});
 
 const connection_url =
   "mongodb+srv://KosmosDeveloper:London2002@cluster0.c6pz9.mongodb.net/whatsappdb?retryWrites=true&w=majority";
