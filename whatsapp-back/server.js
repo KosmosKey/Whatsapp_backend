@@ -75,6 +75,16 @@ app.post("/messages/new", (req, res) => {
   });
 });
 
+app.get("/messages/:id", (req, res) => {
+  Messages.findById(req.params.id, (err, data) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.status(201).send(data);
+    }
+  });
+});
+
 app.delete("/:id", (req, res) => {
   Messages.findByIdAndDelete(req.params.id).then((data) => res.json(data));
 });
